@@ -6,6 +6,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -183,36 +185,77 @@ fun GetNumberScreen(
                             )
                         }
                     } else {
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            ranges.forEach { rangeCode ->
-                                val (flag, country) = TimezoneHelper.getCountryInfo(rangeCode)
-                                val isSelected = selectedRange == rangeCode
-                                Surface(
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
-                                    modifier = Modifier
-                                        .border(
-                                            width = if (isSelected) 2.dp else 1.dp,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                                            shape = RoundedCornerShape(10.dp)
-                                        )
-                                        .clickable { selectedRange = rangeCode }
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            // Row 1 (even indexes)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                ranges.filterIndexed { index, _ -> index % 2 == 0 }.forEach { rangeCode ->
+                                    val (flag, country) = TimezoneHelper.getCountryInfo(rangeCode)
+                                    val isSelected = selectedRange == rangeCode
+                                    val displayText = if (country.isNotEmpty()) "$rangeCode ($country)" else rangeCode
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier
+                                            .border(
+                                                width = if (isSelected) 2.dp else 1.dp,
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                                shape = RoundedCornerShape(10.dp)
+                                            )
+                                            .clickable { selectedRange = rangeCode }
                                     ) {
-                                        Text(text = flag, fontSize = 18.sp)
-                                        Text(
-                                            text = "$rangeCode ${if (country.isNotEmpty()) "($country)" else ""}",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                        )
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Text(text = flag, fontSize = 18.sp)
+                                            Text(
+                                                text = displayText,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            // Row 2 (odd indexes)
+                            if (ranges.size > 1) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    ranges.filterIndexed { index, _ -> index % 2 != 0 }.forEach { rangeCode ->
+                                        val (flag, country) = TimezoneHelper.getCountryInfo(rangeCode)
+                                        val isSelected = selectedRange == rangeCode
+                                        val displayText = if (country.isNotEmpty()) "$rangeCode ($country)" else rangeCode
+                                        Surface(
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+                                            modifier = Modifier
+                                                .border(
+                                                    width = if (isSelected) 2.dp else 1.dp,
+                                                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                                    shape = RoundedCornerShape(10.dp)
+                                                )
+                                                .clickable { selectedRange = rangeCode }
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
+                                                Text(text = flag, fontSize = 18.sp)
+                                                Text(
+                                                    text = displayText,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }

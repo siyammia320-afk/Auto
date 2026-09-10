@@ -1,5 +1,6 @@
 package com.example.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -73,6 +74,10 @@ fun NumGoApp(
             snackbarHostState.showSnackbar(it)
             viewModel.clearSnackbar()
         }
+    }
+
+    BackHandler(enabled = currentScreen != AppNavScreen.HOME) {
+        viewModel.navigateTo(AppNavScreen.HOME)
     }
 
     Scaffold(

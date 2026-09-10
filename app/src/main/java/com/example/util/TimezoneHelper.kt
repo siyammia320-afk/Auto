@@ -1,5 +1,7 @@
 package com.example.util
 
+import com.google.i18n.phonenumbers.PhoneNumberUtil
+import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -17,405 +19,229 @@ data class CountryProfile(
 
 object TimezoneHelper {
 
-    private val defaultProfile = CountryProfile(
-        iso = "US",
-        flag = "🇺🇸",
-        countryName = "USA",
-        timeZoneId = "America/New_York",
-        acceptLanguage = "en-US,en;q=0.9",
-        firstNames = listOf("James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas", "Charles", "Daniel", "Matthew", "Anthony"),
-        lastNames = listOf("Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Anderson", "Taylor", "Thomas", "Moore")
+    private val phoneUtil: PhoneNumberUtil by lazy { PhoneNumberUtil.getInstance() }
+
+    private val countryTimezoneMap = mapOf(
+        "BD" to "Asia/Dhaka",
+        "CI" to "Africa/Abidjan",
+        "US" to "America/New_York",
+        "IN" to "Asia/Kolkata",
+        "PK" to "Asia/Karachi",
+        "GB" to "Europe/London",
+        "FR" to "Europe/Paris",
+        "DE" to "Europe/Berlin",
+        "NG" to "Africa/Lagos",
+        "AF" to "Asia/Kabul",
+        "MA" to "Africa/Casablanca",
+        "DZ" to "Africa/Algiers",
+        "AE" to "Asia/Dubai",
+        "SA" to "Asia/Riyadh",
+        "CA" to "America/Toronto",
+        "MY" to "Asia/Kuala_Lumpur",
+        "ID" to "Asia/Jakarta",
+        "PH" to "Asia/Manila",
+        "MG" to "Indian/Antananarivo",
+        "AM" to "Asia/Yerevan",
+        "TG" to "Africa/Lome",
+        "UA" to "Europe/Kyiv",
+        "RU" to "Europe/Moscow",
+        "TR" to "Europe/Istanbul",
+        "EG" to "Africa/Cairo",
+        "ZA" to "Africa/Johannesburg",
+        "KE" to "Africa/Nairobi",
+        "GH" to "Africa/Accra",
+        "VN" to "Asia/Ho_Chi_Minh",
+        "TH" to "Asia/Bangkok",
+        "MM" to "Asia/Yangon",
+        "BR" to "America/Sao_Paulo",
+        "MX" to "America/Mexico_City",
+        "CO" to "America/Bogota",
+        "ES" to "Europe/Madrid",
+        "IT" to "Europe/Rome",
+        "NL" to "Europe/Amsterdam",
+        "PL" to "Europe/Warsaw"
     )
 
-    private val profilesByDialCode = mapOf(
-        "880" to CountryProfile(
-            iso = "BD",
-            flag = "🇧🇩",
-            countryName = "Bangladesh",
-            timeZoneId = "Asia/Dhaka",
-            acceptLanguage = "bn-BD,bn;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Tanvir", "Araft", "Siam", "Rahim", "Karim", "Rakib", "Hasan", "Nayeem", "Shakil", "Mahmud", "Foysal", "Sakib", "Tamim", "Riad", "Emon", "Alamin", "Zubair", "Fahim"),
-            lastNames = listOf("Bhai", "Khan", "Ahmed", "Chowdhury", "Hossain", "Islam", "Sheikh", "Rahman", "Miah", "Uddin", "Ali", "Hasan", "Sarker")
-        ),
-        "88" to CountryProfile(
-            iso = "BD",
-            flag = "🇧🇩",
-            countryName = "Bangladesh",
-            timeZoneId = "Asia/Dhaka",
-            acceptLanguage = "bn-BD,bn;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Tanvir", "Araft", "Siam", "Rahim", "Karim", "Rakib", "Hasan", "Nayeem", "Shakil", "Mahmud", "Foysal", "Sakib", "Tamim", "Riad", "Emon", "Alamin", "Zubair", "Fahim"),
-            lastNames = listOf("Bhai", "Khan", "Ahmed", "Chowdhury", "Hossain", "Islam", "Sheikh", "Rahman", "Miah", "Uddin", "Ali", "Hasan", "Sarker")
-        ),
-        "225" to CountryProfile(
-            iso = "CI",
-            flag = "🇨🇮",
-            countryName = "Ivory Coast",
-            timeZoneId = "Africa/Abidjan",
-            acceptLanguage = "fr-CI,fr-FR;q=0.9,fr;q=0.8,en-US;q=0.7,en;q=0.6",
-            firstNames = listOf("Kouame", "Koffi", "Konan", "Jean", "Yao", "Mamadou", "Ibrahim", "Abdoulaye", "Bakary", "Seydou", "Adama", "Oumar", "Amadou", "Stephane", "Patrick"),
-            lastNames = listOf("Traore", "Kouassi", "Diallo", "Bamba", "Ouattara", "Coulibaly", "Bakayoko", "Toure", "Kone", "Cisse", "Diarra", "Fofana")
-        ),
-        "1" to CountryProfile(
-            iso = "US",
-            flag = "🇺🇸",
-            countryName = "USA",
-            timeZoneId = "America/New_York",
-            acceptLanguage = "en-US,en;q=0.9",
-            firstNames = listOf("James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas", "Charles", "Daniel", "Matthew", "Anthony"),
-            lastNames = listOf("Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Wilson", "Anderson", "Taylor", "Thomas", "Moore")
-        ),
-        "44" to CountryProfile(
-            iso = "GB",
-            flag = "🇬🇧",
-            countryName = "United Kingdom",
-            timeZoneId = "Europe/London",
-            acceptLanguage = "en-GB,en-US;q=0.9,en;q=0.8",
-            firstNames = listOf("Oliver", "George", "Arthur", "Noah", "Leo", "Oscar", "Harry", "Jack", "Henry", "Charlie", "Freddie"),
-            lastNames = listOf("Smith", "Jones", "Taylor", "Brown", "Williams", "Wilson", "Johnson", "Davies", "Robinson", "Wright")
-        ),
-        "91" to CountryProfile(
-            iso = "IN",
-            flag = "🇮🇳",
-            countryName = "India",
-            timeZoneId = "Asia/Kolkata",
-            acceptLanguage = "en-IN,en-GB;q=0.9,hi-IN;q=0.8,hi;q=0.7",
-            firstNames = listOf("Rahul", "Amit", "Rohit", "Vikram", "Ajay", "Vijay", "Sanjay", "Rajesh", "Deepak", "Sunil", "Anil", "Manoj"),
-            lastNames = listOf("Sharma", "Verma", "Gupta", "Patel", "Singh", "Kumar", "Mishra", "Yadav", "Joshi", "Das")
-        ),
-        "92" to CountryProfile(
-            iso = "PK",
-            flag = "🇵🇰",
-            countryName = "Pakistan",
-            timeZoneId = "Asia/Karachi",
-            acceptLanguage = "ur-PK,ur;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Muhammad", "Ali", "Ahmed", "Usman", "Bilal", "Hamza", "Hassan", "Hussain", "Zain", "Omer", "Farhan"),
-            lastNames = listOf("Khan", "Malik", "Shah", "Chaudhry", "Butt", "Bhatti", "Qureshi", "Abbasi", "Mirza", "Sheikh")
-        ),
-        "234" to CountryProfile(
-            iso = "NG",
-            flag = "🇳🇬",
-            countryName = "Nigeria",
-            timeZoneId = "Africa/Lagos",
-            acceptLanguage = "en-NG,en-GB;q=0.9,en;q=0.8",
-            firstNames = listOf("Chinedu", "Emeka", "Oluwaseun", "Adebayo", "Ibrahim", "Musa", "Chukwuma", "Femi", "Tunde", "Babatunde"),
-            lastNames = listOf("Okafor", "Adeyemi", "Balogun", "Eze", "Nwosu", "Okonkwo", "Bello", "Abubakar", "Danjuma", "Lawal")
-        ),
-        "33" to CountryProfile(
-            iso = "FR",
-            flag = "🇫🇷",
-            countryName = "France",
-            timeZoneId = "Europe/Paris",
-            acceptLanguage = "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Gabriel", "Leo", "Raphael", "Louis", "Lucas", "Arthur", "Hugo", "Jules", "Noah", "Paul", "Pierre"),
-            lastNames = listOf("Martin", "Bernard", "Thomas", "Petit", "Robert", "Richard", "Durand", "Dubois", "Moreau", "Laurent")
-        ),
-        "49" to CountryProfile(
-            iso = "DE",
-            flag = "🇩🇪",
-            countryName = "Germany",
-            timeZoneId = "Europe/Berlin",
-            acceptLanguage = "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Lukas", "Leon", "Finn", "Elias", "Jonas", "Ben", "Noah", "Paul", "Felix", "Maximilian"),
-            lastNames = listOf("Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz")
-        ),
-        "93" to CountryProfile(
-            iso = "AF",
-            flag = "🇦🇫",
-            countryName = "Afghanistan",
-            timeZoneId = "Asia/Kabul",
-            acceptLanguage = "fa-AF,ps;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Ahmad", "Mohammad", "Bilal", "Omid", "Sardar", "Farhad", "Zia", "Nawid"),
-            lastNames = listOf("Popal", "Wardak", "Shinwari", "Stanikzai", "Karimi", "Mohammadi", "Ahmadi")
-        ),
-        "212" to CountryProfile(
-            iso = "MA",
-            flag = "🇲🇦",
-            countryName = "Morocco",
-            timeZoneId = "Africa/Casablanca",
-            acceptLanguage = "ar-MA,fr-MA;q=0.9,ar;q=0.8,fr;q=0.7,en;q=0.6",
-            firstNames = listOf("Youssef", "Amine", "Mehdi", "Hamza", "Anas", "Omar", "Ayoub", "Walid", "Reda", "Taha"),
-            lastNames = listOf("Alaoui", "Idrissi", "Benjelloun", "Berrada", "El Amrani", "Chraibi", "El Fassi", "Mansouri")
-        ),
-        "213" to CountryProfile(
-            iso = "DZ",
-            flag = "🇩🇿",
-            countryName = "Algeria",
-            timeZoneId = "Africa/Algiers",
-            acceptLanguage = "ar-DZ,fr-DZ;q=0.9,ar;q=0.8,fr;q=0.7,en;q=0.6",
-            firstNames = listOf("Mohamed", "Islam", "Abderrahmane", "Ayoub", "Khaled", "Sofiane", "Riyad", "Youcef"),
-            lastNames = listOf("Saadi", "Benali", "Bouzid", "Khelifi", "Mebarki", "Mansouri", "Brahimi", "Haddad")
-        ),
-        "971" to CountryProfile(
-            iso = "AE",
-            flag = "🇦🇪",
-            countryName = "UAE",
-            timeZoneId = "Asia/Dubai",
-            acceptLanguage = "ar-AE,ar;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Abdullah", "Mohammed", "Ahmed", "Sultan", "Rashid", "Khalid", "Mansoor", "Fahad"),
-            lastNames = listOf("Al-Maktoum", "Al-Nuaimi", "Al-Marzooqi", "Al-Zaabi", "Al-Qasimi", "Al-Suwaidi")
-        ),
-        "966" to CountryProfile(
-            iso = "SA",
-            flag = "🇸🇦",
-            countryName = "Saudi Arabia",
-            timeZoneId = "Asia/Riyadh",
-            acceptLanguage = "ar-SA,ar;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Saud", "Fahad", "Abdullah", "Mohammed", "Khalid", "Abdulaziz", "Bandar", "Turki"),
-            lastNames = listOf("Al-Ghamdi", "Al-Harbi", "Al-Shehri", "Al-Qahtani", "Al-Otaibi", "Al-Dossari")
-        ),
-        "62" to CountryProfile(
-            iso = "ID",
-            flag = "🇮🇩",
-            countryName = "Indonesia",
-            timeZoneId = "Asia/Jakarta",
-            acceptLanguage = "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Budi", "Agus", "Bambang", "Eko", "Dwi", "Hadi", "Rudi", "Joko", "Indra", "Doni"),
-            lastNames = listOf("Santoso", "Wijaya", "Kusuma", "Pratama", "Saputra", "Setiawan", "Hidayat", "Wibowo")
-        ),
-        "60" to CountryProfile(
-            iso = "MY",
-            flag = "🇲🇾",
-            countryName = "Malaysia",
-            timeZoneId = "Asia/Kuala_Lumpur",
-            acceptLanguage = "ms-MY,ms;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Muhammad", "Ahmad", "Adam", "Amir", "Danial", "Farhan", "Haziq", "Irfan"),
-            lastNames = listOf("Abdullah", "Ismail", "Ibrahim", "Othman", "Yusof", "Razak", "Kassim", "Zainal")
-        ),
-        "63" to CountryProfile(
-            iso = "PH",
-            flag = "🇵🇭",
-            countryName = "Philippines",
-            timeZoneId = "Asia/Manila",
-            acceptLanguage = "en-PH,tl-PH;q=0.9,tl;q=0.8,en;q=0.7",
-            firstNames = listOf("John", "Mark", "Angelo", "Joshua", "Christian", "Daniel", "Michael", "Gabriel"),
-            lastNames = listOf("Santos", "Reyes", "Cruz", "Bautista", "Ocampo", "Garcia", "Mendoza", "Torres")
-        ),
-        "84" to CountryProfile(
-            iso = "VN",
-            flag = "🇻🇳",
-            countryName = "Vietnam",
-            timeZoneId = "Asia/Ho_Chi_Minh",
-            acceptLanguage = "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Duc", "Huy", "Nam", "Phong", "Quan", "Sang", "Thanh", "Tuan", "Vinh", "Hai"),
-            lastNames = listOf("Nguyen", "Tran", "Le", "Pham", "Hoang", "Huynh", "Phan", "Vu", "Dang", "Bui")
-        ),
-        "66" to CountryProfile(
-            iso = "TH",
-            flag = "🇹🇭",
-            countryName = "Thailand",
-            timeZoneId = "Asia/Bangkok",
-            acceptLanguage = "th-TH,th;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Somchai", "Somsak", "Arthit", "Kittisak", "Narong", "Pornchai", "Wichai", "Chaiwat"),
-            lastNames = listOf("Suksom", "Wongsuwan", "Rattana", "Saetang", "Chaiyaphum", "Phromma", "Boonma")
-        ),
-        "95" to CountryProfile(
-            iso = "MM",
-            flag = "🇲🇲",
-            countryName = "Myanmar",
-            timeZoneId = "Asia/Yangon",
-            acceptLanguage = "my-MM,my;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Aung", "Min", "Kyaw", "Zaw", "Ko", "Tun", "Soe", "Win", "Myo", "Naing"),
-            lastNames = listOf("Lwin", "Oo", "Thu", "San", "Lin", "Hlaing", "Zin", "Shein", "Aung", "Htun")
-        ),
-        "855" to CountryProfile(
-            iso = "KH",
-            flag = "🇰🇭",
-            countryName = "Cambodia",
-            timeZoneId = "Asia/Phnom_Penh",
-            acceptLanguage = "km-KH,km;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Sokha", "Chann", "Piseth", "Vireak", "Dara", "Chenda", "Bora", "Rith"),
-            lastNames = listOf("Heng", "Chan", "Seng", "Kim", "Meng", "Chea", "Keo", "Sam")
-        ),
-        "254" to CountryProfile(
-            iso = "KE",
-            flag = "🇰🇪",
-            countryName = "Kenya",
-            timeZoneId = "Africa/Nairobi",
-            acceptLanguage = "en-KE,sw-KE;q=0.9,en;q=0.8",
-            firstNames = listOf("Brian", "Kevin", "Dennis", "Victor", "John", "Peter", "Collins", "Evans"),
-            lastNames = listOf("Mwangi", "Kamau", "Otieno", "Ochieng", "Kipchumba", "Kipkorir", "Maina")
-        ),
-        "27" to CountryProfile(
-            iso = "ZA",
-            flag = "🇿🇦",
-            countryName = "South Africa",
-            timeZoneId = "Africa/Johannesburg",
-            acceptLanguage = "en-ZA,en-GB;q=0.9,en;q=0.8",
-            firstNames = listOf("Sipho", "Thabo", "Bongani", "Kagiso", "Lethabo", "Bandile", "Junior", "Lungelo"),
-            lastNames = listOf("Dlamini", "Nkosi", "Ndlovu", "Khumalo", "Sithole", "Zulu", "Mthembu", "Cele")
-        ),
-        "233" to CountryProfile(
-            iso = "GH",
-            flag = "🇬🇭",
-            countryName = "Ghana",
-            timeZoneId = "Africa/Accra",
-            acceptLanguage = "en-GH,en-GB;q=0.9,en;q=0.8",
-            firstNames = listOf("Kwame", "Kofi", "Kwaku", "Yaw", "Kwadwo", "Emmanuel", "Samuel", "Joseph"),
-            lastNames = listOf("Mensah", "Osei", "Appiah", "Boateng", "Asante", "Agyemang", "Amoah", "Owusu")
-        ),
-        "20" to CountryProfile(
-            iso = "EG",
-            flag = "🇪🇬",
-            countryName = "Egypt",
-            timeZoneId = "Africa/Cairo",
-            acceptLanguage = "ar-EG,ar;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Ahmed", "Mohamed", "Mahmoud", "Mostafa", "Youssef", "Ali", "Hassan", "Ibrahim"),
-            lastNames = listOf("El-Sayed", "Hassan", "Ali", "Ibrahim", "Abdel-Rahman", "Khalil", "Salem", "Nasser")
-        ),
-        "977" to CountryProfile(
-            iso = "NP",
-            flag = "🇳🇵",
-            countryName = "Nepal",
-            timeZoneId = "Asia/Kathmandu",
-            acceptLanguage = "ne-NP,ne;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Bikash", "Ramesh", "Suresh", "Santosh", "Ashok", "Dipendra", "Prakash", "Binod"),
-            lastNames = listOf("Sharma", "Shrestha", "Adhikari", "Thapa", "Karki", "Tamang", "Magar", "Gurung")
-        ),
-        "94" to CountryProfile(
-            iso = "LK",
-            flag = "🇱🇰",
-            countryName = "Sri Lanka",
-            timeZoneId = "Asia/Colombo",
-            acceptLanguage = "si-LK,ta;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Kasun", "Nuwan", "Dinesh", "Chaminda", "Roshan", "Sanjeewa", "Pradeep", "Asanka"),
-            lastNames = listOf("Perera", "Fernando", "Silva", "Bandara", "Jayasinghe", "Dissanayake", "Wickramasinghe")
-        ),
-        "90" to CountryProfile(
-            iso = "TR",
-            flag = "🇹🇷",
-            countryName = "Turkey",
-            timeZoneId = "Europe/Istanbul",
-            acceptLanguage = "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Yusuf", "Mustafa", "Mehmet", "Ahmet", "Omer", "Ali", "Murat", "Emre", "Burak"),
-            lastNames = listOf("Yilmaz", "Kaya", "Demir", "Celik", "Sahin", "Yildiz", "Yildirim", "Ozturk", "Aydin")
-        ),
-        "55" to CountryProfile(
-            iso = "BR",
-            flag = "🇧🇷",
-            countryName = "Brazil",
-            timeZoneId = "America/Sao_Paulo",
-            acceptLanguage = "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Lucas", "Gabriel", "Matheus", "Felipe", "Gustavo", "Guilherme", "Rafael", "Thiago"),
-            lastNames = listOf("Silva", "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves", "Pereira")
-        ),
-        "52" to CountryProfile(
-            iso = "MX",
-            flag = "🇲🇽",
-            countryName = "Mexico",
-            timeZoneId = "America/Mexico_City",
-            acceptLanguage = "es-MX,es;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Santiago", "Mateo", "Sebastian", "Leonardo", "Matias", "Emiliano", "Diego", "Daniel"),
-            lastNames = listOf("Hernandez", "Garcia", "Martinez", "Lopez", "Gonzalez", "Perez", "Rodriguez", "Sanchez")
-        ),
-        "57" to CountryProfile(
-            iso = "CO",
-            flag = "🇨🇴",
-            countryName = "Colombia",
-            timeZoneId = "America/Bogota",
-            acceptLanguage = "es-CO,es;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Juan", "David", "Carlos", "Andres", "Alejandro", "Daniel", "Mateo", "Nicolas"),
-            lastNames = listOf("Rodriguez", "Gomez", "Gonzalez", "Martinez", "Garcia", "Lopez", "Hernandez", "Sanchez")
-        ),
-        "7" to CountryProfile(
-            iso = "RU",
-            flag = "🇷🇺",
-            countryName = "Russia",
-            timeZoneId = "Europe/Moscow",
-            acceptLanguage = "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Aleksandr", "Dmitry", "Maksim", "Sergey", "Andrey", "Aleksey", "Artyom", "Ilya"),
-            lastNames = listOf("Ivanov", "Smirnov", "Kuznetsov", "Popov", "Vasiliev", "Petrov", "Sokolov", "Mikhailov")
-        ),
-        "34" to CountryProfile(
-            iso = "ES",
-            flag = "🇪🇸",
-            countryName = "Spain",
-            timeZoneId = "Europe/Madrid",
-            acceptLanguage = "es-ES,es;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Hugo", "Martin", "Lucas", "Mateo", "Leo", "Daniel", "Alejandro", "Pablo", "Manuel"),
-            lastNames = listOf("Garcia", "Rodriguez", "Gonzalez", "Fernandez", "Lopez", "Martinez", "Sanchez", "Perez")
-        ),
-        "39" to CountryProfile(
-            iso = "IT",
-            flag = "🇮🇹",
-            countryName = "Italy",
-            timeZoneId = "Europe/Rome",
-            acceptLanguage = "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Leonardo", "Francesco", "Alessandro", "Lorenzo", "Mattia", "Andrea", "Gabriele", "Riccardo"),
-            lastNames = listOf("Rossi", "Russo", "Ferrari", "Esposito", "Bianchi", "Romano", "Colombo", "Ricci")
-        ),
-        "31" to CountryProfile(
-            iso = "NL",
-            flag = "🇳🇱",
-            countryName = "Netherlands",
-            timeZoneId = "Europe/Amsterdam",
-            acceptLanguage = "nl-NL,nl;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Noah", "Sem", "Lucas", "Liam", "Levi", "Finn", "Milan", "Daan", "Bram", "Luuk"),
-            lastNames = listOf("De Jong", "Jansen", "De Vries", "Van de Berg", "Van Dijk", "Bakker", "Janssen", "Visser")
-        ),
-        "48" to CountryProfile(
-            iso = "PL",
-            flag = "🇵🇱",
-            countryName = "Poland",
-            timeZoneId = "Europe/Warsaw",
-            acceptLanguage = "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Antoni", "Jan", "Aleksander", "Franciszek", "Jakub", "Szymon", "Mikolaj", "Filip"),
-            lastNames = listOf("Nowak", "Kowalski", "Wisniewski", "Wojcik", "Kowalczyk", "Kaminski", "Lewandowski")
-        ),
-        "380" to CountryProfile(
-            iso = "UA",
-            flag = "🇺🇦",
-            countryName = "Ukraine",
-            timeZoneId = "Europe/Kyiv",
-            acceptLanguage = "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7",
-            firstNames = listOf("Artem", "Oleksandr", "Maksym", "Dmytro", "Matvii", "Nazar", "Bohdan", "Vladyslav"),
-            lastNames = listOf("Melnyk", "Shevchenko", "Boyko", "Kovalenko", "Bondarenko", "Tkachenko", "Kravchenko")
-        )
+    private val countryNamesMap = mapOf(
+        "880" to Pair("🇧🇩", "Bangladesh"),
+        "1" to Pair("🇺🇸", "USA/Canada"),
+        "225" to Pair("🇨🇮", "Ivory Coast"),
+        "44" to Pair("🇬🇧", "United Kingdom"),
+        "91" to Pair("🇮🇳", "India"),
+        "92" to Pair("🇵🇰", "Pakistan"),
+        "234" to Pair("🇳🇬", "Nigeria"),
+        "33" to Pair("🇫🇷", "France"),
+        "49" to Pair("🇩🇪", "Germany"),
+        "93" to Pair("🇦🇫", "Afghanistan"),
+        "212" to Pair("🇲🇦", "Morocco"),
+        "213" to Pair("🇩🇿", "Algeria")
+    )
+
+    private val internationalFirstNames = listOf(
+        "Alex", "David", "John", "Michael", "Daniel", "James", "Gabriel", "Lucas", "Paul", "Thomas",
+        "Marco", "Robert", "Chris", "Kevin", "Leo", "Samuel", "Eric", "Brian", "Denis", "Victor"
+    )
+    private val internationalLastNames = listOf(
+        "Smith", "Miller", "Taylor", "Wilson", "Brown", "Martin", "Anderson", "Thomas", "Moore", "Jackson",
+        "Harris", "Clark", "Lewis", "Robinson", "Walker", "Young", "Allen", "King", "Wright", "Scott"
     )
 
     fun cleanDigits(number: String): String {
         return number.replace(Regex("\\D"), "")
     }
 
-    fun getProfile(phoneNumberOrRange: String): CountryProfile {
-        val digits = cleanDigits(phoneNumberOrRange)
-        if (digits.isEmpty()) return defaultProfile
+    fun isoToEmoji(isoCode: String): String {
+        if (isoCode.length != 2) return "📱"
+        val upper = isoCode.uppercase(Locale.US)
+        val firstChar = Character.codePointAt(upper, 0) - 0x41 + 0x1F1E6
+        val secondChar = Character.codePointAt(upper, 1) - 0x41 + 0x1F1E6
+        return String(Character.toChars(firstChar)) + String(Character.toChars(secondChar))
+    }
 
-        // Bangladesh special case: local format "01xxxxxxxxx"
-        if (digits.startsWith("01") && digits.length == 11) {
-            return profilesByDialCode["880"] ?: defaultProfile
+    /**
+     * Automatic country ISO detection using Google libphonenumber, just like the Python reference.
+     */
+    fun detectCountryIso(phoneNumber: String): String {
+        val digits = cleanDigits(phoneNumber)
+        if (digits.isEmpty()) return "US"
+
+        // Local Bangladesh pattern
+        if (digits.startsWith("880") || (digits.startsWith("01") && digits.length == 11)) {
+            return "BD"
         }
-        if (digits.startsWith("88")) {
-            return profilesByDialCode["880"] ?: defaultProfile
+        if (digits.startsWith("225")) return "CI"
+        if (digits.startsWith("44")) return "GB"
+        if (digits.startsWith("91")) return "IN"
+        if (digits.startsWith("92")) return "PK"
+        if (digits.startsWith("234")) return "NG"
+
+        // Try libphonenumber parse
+        try {
+            val parseTarget = if (phoneNumber.trim().startsWith("+")) phoneNumber.trim() else "+$digits"
+            val parsed: PhoneNumber = phoneUtil.parse(parseTarget, null)
+            val region = phoneUtil.getRegionCodeForNumber(parsed)
+            if (!region.isNullOrBlank() && region.length == 2 && region != "ZZ") {
+                return region.uppercase(Locale.US)
+            }
+        } catch (e: Exception) {
+            // Ignore parse exception
         }
 
-        // Try matching dial prefixes from 4 digits down to 1 digit
+        // Check if starts with 1 for US
+        if (digits.startsWith("1")) return "US"
+
+        return "US"
+    }
+
+    /**
+     * Returns country flag and country name.
+     * If the country cannot be reliably detected, returns Pair("📱", "") so NO wrong country is shown.
+     */
+    fun getCountryInfo(rangeCode: String): Pair<String, String> {
+        val digits = cleanDigits(rangeCode)
+        if (digits.isEmpty()) return Pair("📱", "")
+
+        // Bangladesh local format
+        if (digits.startsWith("88") || digits.startsWith("01")) {
+            return Pair("🇧🇩", "Bangladesh")
+        }
+
+        // Check common map first
         for (len in 4 downTo 1) {
             if (digits.length >= len) {
                 val prefix = digits.substring(0, len)
-                profilesByDialCode[prefix]?.let { return it }
+                countryNamesMap[prefix]?.let { return it }
             }
         }
 
-        return defaultProfile
+        // Use libphonenumber to automatically resolve the country
+        try {
+            val parseTarget = "+$digits"
+            val parsed = phoneUtil.parse(parseTarget, null)
+            val region = phoneUtil.getRegionCodeForNumber(parsed)
+            if (!region.isNullOrBlank() && region.length == 2 && region != "ZZ") {
+                val upperIso = region.uppercase(Locale.US)
+                val countryName = Locale("", upperIso).getDisplayCountry(Locale.ENGLISH)
+                val flag = isoToEmoji(upperIso)
+                if (countryName.isNotBlank()) {
+                    return Pair(flag, countryName)
+                }
+            }
+        } catch (e: Exception) {
+            // Fall through
+        }
+
+        // If unknown, return phone emoji and empty country name to avoid showing fake country!
+        return Pair("📱", "")
     }
 
-    fun detectCountryIso(phoneNumber: String): String {
-        return getProfile(phoneNumber).iso
+    fun getTimezoneForIso(isoCode: String): String {
+        val upperIso = isoCode.uppercase(Locale.US)
+        // Check Android ICU TimeZone for accurate timezone of any country in the world
+        try {
+            val available = android.icu.util.TimeZone.getAvailableIDs(upperIso)
+            if (!available.isNullOrEmpty() && available[0].isNotBlank()) {
+                return available[0]
+            }
+        } catch (e: Throwable) {
+            // Fallback
+        }
+        return countryTimezoneMap[upperIso] ?: "UTC"
     }
 
-    fun getCountryInfo(rangeCode: String): Pair<String, String> {
-        val profile = getProfile(rangeCode)
-        return Pair(profile.flag, profile.countryName)
+    fun getProfile(phoneNumberOrRange: String): CountryProfile {
+        val iso = detectCountryIso(phoneNumberOrRange)
+        val (flag, countryName) = getCountryInfo(phoneNumberOrRange)
+        val resolvedCountryName = if (countryName.isNotEmpty()) countryName else Locale("", iso).getDisplayCountry(Locale.ENGLISH)
+        val resolvedFlag = if (flag != "📱") flag else isoToEmoji(iso)
+        val tzId = getTimezoneForIso(iso)
+
+        val acceptLang = when (iso) {
+            "BD" -> "bn-BD,bn;q=0.9,en-US;q=0.8,en;q=0.7"
+            "CI" -> "fr-CI,fr-FR;q=0.9,fr;q=0.8,en-US;q=0.7"
+            "FR" -> "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7"
+            "UA" -> "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7"
+            "IN" -> "en-IN,en-GB;q=0.9,hi-IN;q=0.8,hi;q=0.7"
+            "PK" -> "ur-PK,ur;q=0.9,en-US;q=0.8,en;q=0.7"
+            "NG" -> "en-NG,en-GB;q=0.9,en;q=0.8"
+            "DE" -> "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7"
+            "RU" -> "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7"
+            "TR" -> "tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7"
+            else -> "en-US,en;q=0.9"
+        }
+
+        val firstNames = when (iso) {
+            "BD" -> listOf("Tanvir", "Araft", "Siam", "Rahim", "Karim", "Rakib", "Hasan", "Nayeem", "Shakil", "Mahmud", "Foysal", "Sakib", "Tamim", "Riad", "Emon")
+            "CI" -> listOf("Kouame", "Koffi", "Konan", "Jean", "Yao", "Mamadou", "Ibrahim", "Abdoulaye", "Bakary", "Seydou", "Adama", "Oumar", "Amadou")
+            else -> internationalFirstNames
+        }
+
+        val lastNames = when (iso) {
+            "BD" -> listOf("Bhai", "Khan", "Ahmed", "Chowdhury", "Hossain", "Islam", "Sheikh", "Rahman", "Miah", "Uddin", "Ali", "Hasan")
+            "CI" -> listOf("Traore", "Kouassi", "Diallo", "Bamba", "Ouattara", "Coulibaly", "Bakayoko", "Toure", "Kone", "Cisse", "Diarra")
+            else -> internationalLastNames
+        }
+
+        return CountryProfile(
+            iso = iso,
+            flag = resolvedFlag,
+            countryName = resolvedCountryName,
+            timeZoneId = tzId,
+            acceptLanguage = acceptLang,
+            firstNames = firstNames,
+            lastNames = lastNames
+        )
     }
 
     fun getCountryTime(phoneNumber: String): Pair<String, String> {
-        val profile = getProfile(phoneNumber)
+        val iso = detectCountryIso(phoneNumber)
+        val tzName = getTimezoneForIso(iso)
         return try {
-            val tz = TimeZone.getTimeZone(profile.timeZoneId)
+            val tz = TimeZone.getTimeZone(tzName)
             val sdf = SimpleDateFormat("hh:mm:ss a", Locale.US).apply {
                 timeZone = tz
             }
-            Pair(sdf.format(Date()), profile.timeZoneId)
+            Pair(sdf.format(Date()), tzName)
         } catch (e: Exception) {
             val sdf = SimpleDateFormat("hh:mm:ss a", Locale.US).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
