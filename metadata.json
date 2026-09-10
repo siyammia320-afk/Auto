@@ -1,0 +1,6 @@
+{
+  "name": "NumGo Live",
+  "description": "Virtual number receiver, OTP monitor, and account creator engine",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
